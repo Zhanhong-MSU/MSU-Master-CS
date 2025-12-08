@@ -1,6 +1,7 @@
 # MSU Master 1st Semester Courses
 
-**[English](README_EN.md)** | 中文
+[![中文](https://img.shields.io/badge/中文-Current-green?style=for-the-badge)](README.md)
+[![English](https://img.shields.io/badge/English-Click_to_View-blue?style=for-the-badge)](README_EN.md)
 
 莫斯科国立大学计算机学院硕士一年级课程资料
 

@@ -1,6 +1,7 @@
 # MSU Master 1st Semester Courses
 
-English | **[中文](README.md)**
+[![中文](https://img.shields.io/badge/中文-点击查看-blue?style=for-the-badge)](README.md)
+[![English](https://img.shields.io/badge/English-Current-green?style=for-the-badge)](README_EN.md)
 
 Course materials for the 1st semester of Master's program at Moscow State University, Faculty of Computational Mathematics and Cybernetics
 
