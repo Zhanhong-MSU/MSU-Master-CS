@@ -45,8 +45,8 @@ SELECT
     T1.Price,
     SUM(T3.Qty) AS TotalQty
 FROM T1
-LEFT JOIN T3 on T1.ItemId = T3.ItemId
-GROUP bY T1.ItemId, T1.Name
+LEFT JOIN T3 ON T1.ItemId = T3.ItemId
+GROUP BY T1.ItemId, T1.Name, T1.Price
 ORDER BY TotalQty DESC;
 ```
 
@@ -74,9 +74,9 @@ SELECT
     SUM(T3.Qty * T1.price)
 FROM T2
 INNER JOIN 
-    T3 on T3.OrderId = T2.OrderId
+    T3 ON T3.OrderId = T2.OrderId
 INNER JOIN 
-    T1 on T1.ItemId = T3.ItemId
+    T1 ON T1.ItemId = T3.ItemId
 GROUP BY 
     DATEPART(hour, T2.Dt)
 ORDER BY 
