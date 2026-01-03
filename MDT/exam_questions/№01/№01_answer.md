@@ -70,16 +70,14 @@ ORDER BY T2.OrderId
 
 ```sql
 SELECT
-    DATEPART(hour, T2.Dt),
-    SUM(T3.Qty * T1.price)
+    DATEPART(hour, T2.Dt) AS HourTime,
+    SUM(T3.Qty * T1.price) AS TotalRevenue
 FROM T2
 INNER JOIN 
     T3 ON T3.OrderId = T2.OrderId
-INNER JOIN 
-    T1 ON T1.ItemId = T3.ItemId
 GROUP BY 
     DATEPART(hour, T2.Dt)
 ORDER BY 
-    DATEPART(hour, T2.Dt) ASC;
+    HourTime ASC;
 
 ```
