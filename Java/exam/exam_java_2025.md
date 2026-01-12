@@ -2538,3 +2538,761 @@ public class User {
 | **Organize Imports** | `Ctrl + Shift + O` | Организация импорта (удаление лишнего) |
 
 ---
+
+# 8. Родовые типы в языке Java. Назначение родовых типов. Не ковариантность родовых типов. Родовой тип wildcard. Родовые методы. Ограниченные родовые типы.
+
+---
+
+### 1. Родовые типы в языке Java
+
+**Java 语言中的泛型**
+
+```java
+// Класс Box может хранить объект любого типа T
+// Box 类可以存储任何类型 T 的对象
+public class Box<T> {
+    private T t;
+
+    public void set(T t) { this.t = t; }
+    public T get() { return t; }
+}
+
+// Использование (使用):
+Box<Integer> integerBox = new Box<>();
+Box<String> stringBox = new Box<>();
+
+```
+
+* **Объяснение (解释):**
+Родовые типы (Generics) позволяют абстрагировать тип данных, используемый в классе или интерфейсе. `T` — это параметр типа, который заменяется реальным типом при создании объекта.
+泛型允许我们在类或接口中抽象出数据类型。`T` 是一个类型参数，在创建对象时会被替换为具体的类型。
+
+---
+
+### 2. Назначение родовых типов
+
+**泛型的用途**
+
+```java
+// [1] Без Generics (No Type Safety)
+// 无泛型（无类型安全）
+List list = new ArrayList();
+list.add("Hello");
+list.add(100); // Ошибка не видна при компиляции (编译时看不出错误)
+// String s = (String) list.get(1); // Runtime Exception! (运行时异常)
+
+// [2] С Generics (Type Safety)
+// 有泛型（类型安全）
+List<String> listGen = new ArrayList<>();
+listGen.add("Hello");
+// listGen.add(100); // Ошибка компиляции! (编译错误！)
+String s = listGen.get(0); // Приведение типов не нужно (不需要类型转换)
+
+```
+
+* **Объяснение (解释):**
+Главные цели: 1. Обеспечение строгой типизации на этапе компиляции (обнаружение ошибок раньше). 2. Устранение необходимости в явном приведении типов (casting).
+主要目的：1. 在编译阶段提供严格的类型检查（更早发现错误）。2. 消除显式强制类型转换的需要。
+
+---
+
+### 3. Не ковариантность родовых типов
+
+**泛型的非协变性**
+
+```java
+public void test() {
+    List<String> strings = new ArrayList<>();
+    
+    // ❌ ОШИБКА КОМПИЛЯЦИИ (COMPILATION ERROR)
+    // List<Object> objects = strings; 
+    
+    // Почему это запрещено? (为什么禁止这样做？)
+    // Если бы это было можно, мы могли бы сделать так:
+    // 如果允许这样做，我们就可以：
+    // objects.add(new Integer(123)); // Добавили число в список строк! (把数字加进了字符串列表！)
+    // String s = strings.get(0); // ClassCastException при чтении
+}
+
+```
+
+* **Объяснение (解释):**
+В Java дженерики инвариантны: `List<String>` **не** является подтипом `List<Object>`, даже если `String` является подтипом `Object`. Это сделано для предотвращения порчи кучи (Heap Pollution).
+在 Java 中，泛型是不变的：`List<String>` **不是** `List<Object>` 的子类型，即使 `String` 是 `Object` 的子类型。这是为了防止堆污染（Heap Pollution）。
+
+---
+
+### 4. Родовой тип wildcard
+
+**通配符泛型 (`?`)**
+
+```java
+// Метод принимает список ЛЮБОГО типа
+// 该方法接受“任何”类型的列表
+public static void printList(List<?> list) {
+    for (Object elem : list) {
+        System.out.print(elem + " ");
+    }
+    System.out.println();
+}
+
+// Использование:
+List<Integer> li = Arrays.asList(1, 2, 3);
+List<String> ls = Arrays.asList("one", "two");
+printList(li); // Работает (Works)
+printList(ls); // Работает (Works)
+
+```
+
+* **Объяснение (解释):**
+Символ `?` (wildcard) означает "неизвестный тип". `List<?>` — это супертип для любых списков. Однако, в такой список нельзя ничего добавлять (кроме `null`), так как компилятор не знает конкретный тип элементов.
+符号 `?`（通配符）表示“未知类型”。`List<?>` 是所有列表的父类型。但是，你不能向这种列表中添加任何元素（`null` 除外），因为编译器不知道具体是哪种类型。
+
+---
+
+### 5. Родовые методы
+
+**泛型方法**
+
+```java
+public class ArrayUtil {
+    // <T> перед типом возврата объявляет метод родовым
+    // 返回类型前的 <T> 声明这是一个泛型方法
+    public static <T> T getMiddle(T[] a) {
+        return a[a.length / 2];
+    }
+}
+
+// Использование (T выводится автоматически)
+// 使用（自动推断 T）
+String[] names = {"John", "Q", "Public"};
+String middle = ArrayUtil.getMiddle(names); // "Q"
+
+```
+
+* **Объяснение (解释):**
+Родовые методы позволяют использовать параметры типа в отдельных методах, не делая весь класс родовым. Тип `T` определяется компилятором на основе переданных аргументов.
+泛型方法允许在单个方法中使用类型参数，而无需将整个类定义为泛型。编译器会根据传入的参数自动推断类型 `T`。
+
+---
+
+### 6. Ограниченные родовые типы
+
+**受限泛型 (Bounded Types)**
+
+这是这一题最难的部分，通常分为 **Upper Bound** (`extends`) 和 **Lower Bound** (`super`)。考试常考 `extends`。
+
+**示例 A: Upper Bound (Верхняя граница)**
+我们只想接受 `Number` 或其子类（如 Integer, Double）。
+
+```java
+// T должен быть наследником Number
+// T 必须是 Number 的子类
+public class MathBox<T extends Number> {
+    private T value;
+
+    public MathBox(T value) { this.value = value; }
+
+    public double doubleValue() {
+        // Мы уверены, что у T есть метод doubleValue()
+        // 我们确信 T 拥有 doubleValue() 方法
+        return value.doubleValue();
+    }
+}
+
+// MathBox<String> box = new MathBox<>("Hi"); // ❌ Ошибка компиляции! String не Number.
+MathBox<Integer> iBox = new MathBox<>(10);    // ✅ OK
+
+```
+
+* **Объяснение (解释):**
+`T extends ClassName` ограничивает параметр типа так, что он должен быть либо указанным классом, либо его наследником. Это позволяет вызывать методы этого класса внутри дженерика.
+`T extends ClassName` 将类型参数限制为该类本身或其子类。这允许你在泛型代码内部调用该类的方法（例如 `Number` 的 `doubleValue()`）。
+
+---
+
+# 9. Потоки байтового вывода языка Java. Назначение и возможности классов OutputStream, ByteArrayOutputStream, FileOutputStream, PipedOutputStream, FilterOutputStream, BufferedOutputStream, DataOutputStream, PrintStream. Потоки символьного вывода языка Java.
+---
+
+### 1. Потоки байтового вывода языка Java (OutputStream)
+
+**Java 字节输出流 (OutputStream)**
+
+```java
+// Абстрактный базовый класс для всех байтовых потоков вывода
+// 所有字节输出流的抽象基类
+public abstract class OutputStream implements Closeable, Flushable {
+    public abstract void write(int b) throws IOException;
+    // ...
+}
+
+```
+
+* **Объяснение (解释):**
+`OutputStream` — это абстрактный родитель всех классов, которые выводят байты. Он определяет базовый метод `write()`, но сам по себе не используется для создания объектов.
+`OutputStream` 是所有输出字节类的抽象父类。它定义了基本的 `write()` 方法，但本身不能用于直接创建对象。
+
+---
+
+### 2. ByteArrayOutputStream
+
+**字节数组输出流**
+
+```java
+public void testByteArray() throws IOException {
+    // RU: Пишет данные в память (внутренний массив), а не на диск.
+    // CN: 将数据写入内存（内部数组），而不是磁盘。
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    
+    baos.write(65); // 'A'
+    baos.write(66); // 'B'
+    
+    // RU: Преобразование накопленных байтов в массив.
+    // CN: 将积累的字节转换为数组。
+    byte[] result = baos.toByteArray(); // [65, 66]
+}
+
+```
+
+* **Объяснение (解释):**
+Используется, когда нужно собрать данные в памяти (буфер) перед тем, как отправить их куда-то еще. Данные хранятся в динамически расширяемом массиве байтов.
+用于在将数据发送到其他地方之前，先在内存（缓冲区）中收集数据。数据存储在动态扩展的字节数组中。
+
+---
+
+### 3. FileOutputStream
+
+**文件输出流**
+
+```java
+public void testFile() throws IOException {
+    // RU: true означает режим добавления (append), false - перезапись.
+    // CN: true 表示追加模式 (append)，false 表示覆盖。
+    FileOutputStream fos = new FileOutputStream("test.txt", true);
+    
+    String text = "Hello Java IO";
+    // RU: Нужно явно преобразовать строку в байты.
+    // CN: 需要显式地将字符串转换为字节。
+    fos.write(text.getBytes());
+    
+    fos.close(); // Обязательно закрывать! (务必关闭！)
+}
+
+```
+
+* **Объяснение (解释):**
+Предназначен для записи необработанных байтов (например, изображений или текста) в файл на диске.
+用于将原始字节（例如图像或文本）写入磁盘文件。
+
+---
+
+### 4. PipedOutputStream
+
+**管道输出流**
+
+```java
+public void testPipe() throws IOException {
+    PipedOutputStream out = new PipedOutputStream();
+    PipedInputStream in = new PipedInputStream();
+    
+    // RU: Обязательно соединить вход и выход!
+    // CN: 必须连接输入和输出！
+    out.connect(in);
+    
+    // RU: Обычно используется в двух разных потоках (Threads).
+    // Один поток пишет в 'out', другой читает из 'in'.
+    // CN: 通常在两个不同的线程中使用。一个线程写入 'out'，另一个从 'in' 读取。
+    new Thread(() -> {
+        try { out.write('X'); } catch (IOException e) {}
+    }).start();
+}
+
+```
+
+* **Объяснение (解释):**
+Создает канал связи между двумя потоками (threads). Все, что записано в `PipedOutputStream`, становится доступным для чтения в связанном `PipedInputStream`.
+在两个线程之间建立通信通道。写入 `PipedOutputStream` 的所有内容都可以在连接的 `PipedInputStream` 中读取。
+
+---
+
+### 5. FilterOutputStream
+
+**过滤输出流**
+
+```java
+// Это базовый класс для "оберток" (Decorators)
+// 这是所有“包装器”（装饰器）的基类
+public class FilterOutputStream extends OutputStream {
+    protected OutputStream out; // Ссылка на реальный поток (引用真实的流)
+    
+    public FilterOutputStream(OutputStream out) {
+        this.out = out;
+    }
+}
+
+```
+
+* **Объяснение (解释):**
+Сам по себе этот класс редко используется. Он служит базой для классов, которые добавляют функциональность к существующему потоку (например, буферизацию или шифрование).
+这个类本身很少直接使用。它是那些为现有流添加功能（如缓冲或加密）的类的基类。
+
+---
+
+### 6. BufferedOutputStream
+
+**缓冲输出流**
+
+```java
+public void testBuffered() throws IOException {
+    // RU: Оборачиваем FileOutputStream для скорости.
+    // CN: 包装 FileOutputStream 以提高速度。
+    FileOutputStream fos = new FileOutputStream("data.bin");
+    BufferedOutputStream bos = new BufferedOutputStream(fos);
+    
+    // RU: Данные копятся в буфере и записываются на диск большим куском.
+    // CN: 数据积攒在缓冲区中，然后一大块一大块地写入磁盘。
+    bos.write(1); 
+    
+    bos.flush(); // Принудительная запись (强制写入)
+    bos.close();
+}
+
+```
+
+* **Объяснение (解释):**
+Повышает производительность ввода-вывода. Вместо того чтобы обращаться к диску для каждого байта, он накапливает данные в памяти и пишет их блоками.
+提高 I/O 性能。它不是为每个字节都访问磁盘，而是将数据在内存中积累，然后分块写入。
+
+---
+
+### 7. DataOutputStream
+
+**数据输出流**
+
+```java
+public void testData() throws IOException {
+    DataOutputStream dos = new DataOutputStream(new FileOutputStream("file.dat"));
+    
+    // RU: Записывает примитивные типы Java переносимым способом.
+    // CN: 以可移植的方式写入 Java 基本数据类型。
+    dos.writeInt(123);       // 4 bytes
+    dos.writeDouble(45.67);  // 8 bytes
+    dos.writeBoolean(true);  // 1 byte
+    
+    dos.close();
+}
+
+```
+
+* **Объяснение (解释):**
+Позволяет приложению записывать примитивные типы данных Java (int, double, boolean) в поток вывода переносимым способом.
+允许应用程序以可移植的方式将 Java 基本数据类型（int, double, boolean）写入输出流。
+
+---
+
+### 8. PrintStream
+
+**打印流**
+
+```java
+public void testPrint() throws FileNotFoundException {
+    // System.out - это объект типа PrintStream!
+    // System.out 就是一个 PrintStream 类型的对象！
+    PrintStream ps = new PrintStream(new FileOutputStream("log.txt"));
+    
+    // RU: Удобные методы для печати текста. Не выбрасывает IOException.
+    // CN: 便捷的文本打印方法。不抛出 IOException。
+    ps.println("Hello World");
+    ps.printf("Age: %d", 25);
+    
+    ps.close();
+}
+
+```
+
+* **Объяснение (解释):**
+Добавляет возможность удобно печатать представления различных значений данных. В отличие от других потоков, он **никогда не выбрасывает IOException** и поддерживает автоматический сброс (auto-flush).
+添加了方便地打印各种数据值表示形式的功能。与其他流不同，它**从不抛出 IOException**，并且支持自动刷新 (auto-flush)。
+
+---
+
+### 9. Потоки символьного вывода языка Java
+
+**Java 字符输出流**
+
+题目最后提到了“字符输出流”。这是为了区分“字节 (Byte)”和“字符 (Char)”。
+
+```java
+// Байтовый поток (Byte Stream) -> OutputStream
+// Работает с raw binary data (изображения, видео).
+// 处理原始二进制数据（图像、视频）。
+
+// Символьный поток (Character Stream) -> Writer 
+// Работает с текстом и кодировками (UTF-8).
+// 处理文本和编码（UTF-8）。
+
+Writer writer = new FileWriter("text.txt");
+writer.write("Привет!"); // Можно писать строки напрямую (可以直接写字符串)
+writer.close();
+
+```
+
+* **Объяснение (解释):**
+Если `OutputStream` предназначен для байтов, то для работы с текстом в Java используется иерархия классов на основе абстрактного класса `Writer`. Они автоматически обрабатывают кодировки символов.
+如果说 `OutputStream` 是用于字节的，那么 Java 中处理文本则使用基于抽象类 `Writer` 的类层次结构。它们会自动处理字符编码。
+
+---
+
+# 10. Потоки ввода языка Java. Назначение и возможности классов InputStream, ByteArrayInputStream, FileInputStream, PipedInputStream, FilterInputStream, BufferedInputStream, DataInputStream. Потоки символьного ввода языка Java. Чтение данных из потока с помощью класса Scanner.
+
+---
+
+### 1. Потоки ввода языка Java (InputStream)
+
+**Java 字节输入流 (InputStream)**
+
+```java
+// Абстрактный базовый класс для всех байтовых потоков ввода
+// 所有字节输入流的抽象基类
+public abstract class InputStream implements Closeable {
+    
+    // RU: Возвращает следующий байт данных (0-255) или -1, если конец потока.
+    // EN: Returns the next byte of data (0-255) or -1 if the end of the stream is reached.
+    // CN: 返回下一个字节的数据 (0-255)，如果到达流的末尾则返回 -1。
+    public abstract int read() throws IOException;
+}
+
+```
+
+* **Объяснение (解释):**
+`InputStream` — это родитель всех входных потоков. Его главный метод `read()` читает по одному байту. Это медленно, поэтому обычно используются наследники.
+`InputStream` 是所有输入流的父类。它的主要方法 `read()` 每次读取一个字节。这很慢，所以通常使用其子类。
+
+---
+
+### 2. ByteArrayInputStream
+
+**字节数组输入流**
+
+```java
+public void testByteArrayInput() {
+    byte[] data = { 65, 66, 67 }; // A, B, C
+    
+    // RU: Читаем данные из массива в памяти, как будто это поток.
+    // CN: 从内存数组中读取数据，就像读取流一样。
+    ByteArrayInputStream bais = new ByteArrayInputStream(data);
+    
+    int b = bais.read(); // 65 ('A')
+}
+
+```
+
+* **Объяснение (解释):**
+Позволяет использовать буфер в памяти (массив байтов) как источник данных для потока ввода.
+允许将内存中的缓冲区（字节数组）用作输入流的数据源。
+
+---
+
+### 3. FileInputStream
+
+**文件输入流**
+
+```java
+public void testFileInput() throws IOException {
+    // RU: Открывает соединение с реальным файлом.
+    // CN: 打开与真实文件的连接。
+    FileInputStream fis = new FileInputStream("config.txt");
+    
+    int i;
+    // RU: Читаем побайтово, пока не встретим -1 (конец файла).
+    // CN: 逐字节读取，直到遇到 -1（文件结束）。
+    while ((i = fis.read()) != -1) {
+        System.out.print((char) i);
+    }
+    
+    fis.close();
+}
+
+```
+
+* **Объяснение (解释):**
+Предназначен для чтения байтов из файла в файловой системе. Это один из самых часто используемых классов.
+专用于从文件系统中的文件读取字节。这是最常用的类之一。
+
+---
+
+### 4. PipedInputStream
+
+**管道输入流**
+
+```java
+public void testPipedInput() throws IOException {
+    PipedInputStream in = new PipedInputStream();
+    PipedOutputStream out = new PipedOutputStream();
+    
+    // RU: Соединяем "трубу".
+    // CN: 连接“管道”。
+    in.connect(out);
+    
+    // RU: Читаем то, что другой поток записал в 'out'.
+    // CN: 读取另一个线程写入 'out' 的内容。
+    int data = in.read(); 
+}
+
+```
+
+* **Объяснение (解释):**
+Принимает данные, записанные в связанный `PipedOutputStream`. Используется для передачи данных между потоками (threads).
+接收写入到相关联的 `PipedOutputStream` 中的数据。用于在线程之间传输数据。
+
+---
+
+### 5. FilterInputStream
+
+**过滤输入流**
+
+```java
+// Базовый класс-декоратор
+// 装饰器基类
+public class FilterInputStream extends InputStream {
+    protected volatile InputStream in; // Обернутый поток (被包装的流)
+    
+    protected FilterInputStream(InputStream in) {
+        this.in = in;
+    }
+}
+
+```
+
+* **Объяснение (解释):**
+Базовый класс для декораторов, которые добавляют новую функциональность к существующему потоку ввода.
+装饰器的基类，用于向现有的输入流添加新功能。
+
+---
+
+### 6. BufferedInputStream
+
+**缓冲输入流**
+
+```java
+public void testBufferedInput() throws IOException {
+    FileInputStream fis = new FileInputStream("large_video.mp4");
+    
+    // RU: Читает большие куски данных в память, уменьшая количество обращений к диску.
+    // CN: 将大块数据读取到内存中，减少磁盘访问次数。
+    BufferedInputStream bis = new BufferedInputStream(fis);
+    
+    int data = bis.read(); // Быстро! (Fast!)
+    bis.close();
+}
+
+```
+
+* **Объяснение (解释):**
+Добавляет буферизацию. Когда вы запрашиваете 1 байт, он читает сразу блок (например, 8KB) в память. Это значительно ускоряет чтение файлов.
+添加缓冲功能。当你请求 1 个字节时，它会一次性读取一个块（例如 8KB）到内存中。这极大地加快了文件读取速度。
+
+---
+
+### 7. DataInputStream
+
+**数据输入流**
+
+```java
+public void testDataInput() throws IOException {
+    DataInputStream dis = new DataInputStream(new FileInputStream("data.bin"));
+    
+    // RU: Читаем примитивы в том же порядке, в котором писали (через DataOutputStream).
+    // CN: 按照写入的顺序（通过 DataOutputStream）读取基本类型。
+    int i = dis.readInt();       // 4 bytes
+    double d = dis.readDouble(); // 8 bytes
+    boolean b = dis.readBoolean(); 
+    
+    dis.close();
+}
+
+```
+
+* **Объяснение (解释):**
+Позволяет читать примитивные типы данных Java (int, float, boolean) из потока.
+允许从流中读取 Java 基本数据类型（int, float, boolean）。
+
+---
+
+### 8. Потоки символьного ввода языка Java
+
+**Java 字符输入流**
+
+这里再次强调 **Byte vs Char** 的区别。
+
+```java
+// InputStream -> Reader
+// FileInputStream -> FileReader
+
+public void testReader() throws IOException {
+    // RU: FileReader автоматически декодирует байты в символы (char).
+    // CN: FileReader 自动将字节解码为字符 (char)。
+    Reader reader = new FileReader("text.txt");
+    
+    int data = reader.read(); // Возвращает char (0-65535)
+    reader.close();
+}
+
+```
+
+* **Объяснение (解释):**
+Для чтения текста используется иерархия `Reader` (читатель). Она работает с 16-битными символами Unicode, в отличие от 8-битных байтов `InputStream`.
+读取文本使用 `Reader`（读取器）层次结构。与使用 8 位字节的 `InputStream` 不同，它处理 16 位 Unicode 字符。
+
+---
+
+### 9. Чтение данных из потока с помощью класса Scanner
+
+**使用 Scanner 类从流中读取数据**
+
+这是考试中**必考**的实用工具，因为它比 `InputStream` 好用太多了。
+
+```java
+public void testScanner() {
+    // RU: Scanner может читать из InputStream, файла или строки.
+    // CN: Scanner 可以从 InputStream、文件或字符串读取。
+    Scanner scanner = new Scanner(System.in); // Чтение с клавиатуры (从键盘读取)
+    
+    System.out.print("Enter number: ");
+    
+    // RU: Удобные методы для парсинга токенов.
+    // CN: 用于解析标记的便捷方法。
+    if (scanner.hasNextInt()) {
+        int number = scanner.nextInt();
+        System.out.println("You entered: " + number);
+    }
+    
+    String word = scanner.next(); // Читает слово до пробела (读取直到空格的一个单词)
+    String line = scanner.nextLine(); // Читает всю строку (读取整行)
+    
+    scanner.close();
+}
+
+```
+
+* **Объяснение (解释):**
+Класс `Scanner` — это высокоуровневый текстовый сканер. Он разбивает входные данные на токены с помощью разделителя (по умолчанию пробел) и может автоматически парсить числа и строки.
+`Scanner` 类是一个高级文本扫描器。它使用分隔符（默认为空格）将输入数据分解为标记 (tokens)，并且可以自动解析数字和字符串。
+
+---
+
+# 11. Интернационализация программ в языке Java. Файлы текстовых ресурсов.Выбор языка пользователя для выдачи текстовых сообщений
+---
+
+### 1. Интернационализация программ в языке Java (I18n)
+
+**Java 程序的国际化**
+
+```java
+// I18n = Internationalization (между 'I' и 'n' 18 букв)
+// I18n = Internationalization ('I' 和 'n' 之间有 18 个字母)
+
+// Цель: Написать код один раз, а тексты хранить отдельно.
+// 目标：代码只写一次，文本分开存储。
+
+```
+
+* **Объяснение (解释):**
+Интернационализация — это процесс проектирования приложения так, чтобы его можно было адаптировать к различным языкам и регионам без изменения исходного кода.
+国际化是设计应用程序的过程，使其无需更改源代码即可适应不同的语言和地区。
+
+---
+
+### 2. Файлы текстовых ресурсов (Resource Bundles)
+
+**文本资源文件** 
+
+在 Java 中，翻译通常存储在 `.properties` 文件中。文件名必须遵循严格的命名规则：`BaseName_language_country.properties`。
+
+**Структура файлов (文件结构):**
+
+1. **messages.properties** (Default / 默认 - 英语)
+```properties
+greeting=Hello
+farewell=Goodbye
+
+```
+
+
+2. **messages_ru.properties** (Russian / 俄语)
+```properties
+greeting=Привет
+farewell=Пока
+
+```
+
+
+3. **messages_zh.properties** (Chinese / 中文)
+```properties
+greeting=你好
+farewell=再见
+
+```
+
+
+
+* **Объяснение (解释):**
+Текстовые ресурсы хранятся в файлах `.properties` в виде пар "ключ=значение". Ключи (например, `greeting`) одинаковы во всех файлах, а значения зависят от языка.
+文本资源以“键=值”对的形式存储在 `.properties` 文件中。键（例如 `greeting`）在所有文件中都是相同的，但值取决于语言。
+
+---
+
+### 3. Выбор языка пользователя для выдачи текстовых сообщений
+
+**选择用户语言以显示文本消息** 
+
+我们需要使用 `java.util.Locale` 来指定语言，用 `java.util.ResourceBundle` 来加载对应的文件。
+
+```java
+import java.util.Locale;
+import java.util.ResourceBundle;
+
+public class I18nDemo {
+    public static void main(String[] args) {
+        // [1] Создаем локали для разных языков
+        // [1] 为不同的语言创建 Locale 对象
+        Locale localeEn = new Locale("en", "US"); // English
+        Locale localeRu = new Locale("ru", "RU"); // Russian
+        Locale localeZh = new Locale("zh", "CN"); // Chinese
+
+        // [2] Выбираем язык пользователя (например, Русский)
+        // [2] 选择用户语言（例如：俄语）
+        Locale currentLocale = localeRu; 
+
+        // [3] Загружаем нужный файл ресурсов
+        // Java ищет файл: messages_ru.properties
+        // [3] 加载相应的资源文件
+        // Java 会寻找：messages_ru.properties
+        ResourceBundle bundle = ResourceBundle.getBundle("messages", currentLocale);
+
+        // [4] Получаем текст по ключу
+        // [4] 通过键获取文本
+        String msg = bundle.getString("greeting");
+        
+        System.out.println(msg); // Вывод (Output): Привет
+    }
+}
+
+```
+
+* **Объяснение (解释):**
+Класс `Locale` определяет регион (язык + страна). Метод `ResourceBundle.getBundle()` автоматически ищет наиболее подходящий файл `.properties` для заданной локали. Если точное совпадение не найдено, используется файл по умолчанию.
+`Locale` 类定义了区域（语言 + 国家）。`ResourceBundle.getBundle()` 方法会自动为指定的区域查找最匹配的 `.properties` 文件。如果没有找到完全匹配的，则使用默认文件。
+
+---
+
+**考试技巧 (Exam Tip):**
+如果被问到 **"Fallback Mechanism" (回退机制)**：
+当请求 `fr_CA` (加拿大法语) 但不存在时，Java 会按以下顺序查找：
+
+1. `messages_fr_CA.properties`
+2. `messages_fr.properties`
+3. `messages.properties` (Default)
+这也是为什么一定要有一个默认文件的原因。
+
+第 11 题非常简洁。准备好进入 **第 12 题 (Question 12)** 了吗？它是关于 **Java 8 Lambda 表达式**  的，这可是现代 Java 的分水岭。
