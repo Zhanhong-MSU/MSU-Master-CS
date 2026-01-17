@@ -1,69 +1,86 @@
-# Compiled Object files
+# ===== C/C++ =====
 *.o
 *.obj
-
-# Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
-
-# Compiled Static libraries
 *.a
 *.lib
-
-# Executables
 *.exe
 *.out
 *.app
 
-# Java compiled files
-*.class
-*.jar
-
-# C++ specific
+# C++ build
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 Makefile
-!PPSC/*/Makefile
+!Semester_1/PPSC/**/Makefile
 
-# Logs
-*.log
-*.tlog
+# ===== Java/Kotlin =====
+*.class
+*.jar
+*.war
+build/
+out/
+.gradle/
 
-# OS generated files
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+*.egg-info/
+.eggs/
+
+# ===== Jupyter =====
+.ipynb_checkpoints/
+
+# ===== macOS =====
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
+
+# ===== Windows =====
 ehthumbs.db
 Thumbs.db
 
-# IDE specific
+# ===== IDE =====
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Large Data files
+# ===== Git (防止子目录 .git) =====
+**/.git/
+
+# ===== Logs =====
+*.log
+*.tlog
+
+# ===== Archives =====
 *.dat
 *.zip
 *.tar.gz
 *.rar
 *.7z
 
-# Python cache
-__pycache__/
-*.py[cod]
-*$py.class
-.pytest_cache/
+# ===== Temp files =====
+*.tmp
+*.temp
+.env
+.env.local
 
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Generated cache files
+# ===== Generated files =====
 Java/exam/*.html
 Java/exam/*.css
 Kotlin/exam/*.html
